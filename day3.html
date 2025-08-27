@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Day 3 Scratch Gift 🎁</title>
+  <style>
+    body{
+      display:flex;flex-direction:column;justify-content:center;align-items:center;
+      min-height:100vh;margin:0;padding:20px;box-sizing:border-box;
+      font-family:'Poppins',sans-serif;text-align:center;color:#6a0572;
+      background:linear-gradient(135deg,#a18cd1 0%,#fbc2eb 100%);
+      overflow-x:hidden;
+    }
+    #scratchCard{
+      position:relative;
+      width:90vw; max-width:380px;
+      background:#fff;border-radius:20px;overflow:hidden;
+      box-shadow:0 10px 25px rgba(0,0,0,.2);margin-bottom:25px;
+    }
+    #message{
+      padding:22px;box-sizing:border-box;
+    }
+    #message h2{font-size:1.1rem;margin:0 0 12px}
+    #message p{font-size:0.95rem;line-height:1.5;margin:0}
+    #scratchCanvas{
+      position:absolute;inset:0;width:100%;height:100%;
+      display:block;border-radius:20px;
+    }
+    #countdown{
+      font-size:1.2rem;font-weight:bold;margin-top:15px;
+      background:rgba(255,255,255,.8);padding:8px 15px;border-radius:12px;
+      display:inline-block;
+    }
+  </style>
+</head>
+<body>
+  <div id="scratchCard">
+    <div id="message">
+      <h2>💜 This is the Third Day Gift of my Laado 💜</h2>
+      <p>
+        My Laado, today was such a special day — your very first day at your internship 🤍 and also the first day of your periods. 
+        And yet, you handled it all so gracefully, with strength and calmness that I admire deeply. I’m so, so proud of you 💕. 
+        Always remember, no matter what the day brings — whether it’s challenges, pain, or victories — I’ll always be here, 
+        supporting you, standing by your side, and loving you endlessly. 💜
+      </p>
+    </div>
+    <canvas id="scratchCanvas"></canvas>
+  </div>
+
+  <h2>⏳ Countdown to Your Birthday 💜</h2>
+  <div id="countdown"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <script>
+    // ---- Auto-size canvas to match the card ----
+    const card = document.getElementById('scratchCard');
+    const canvas = document.getElementById('scratchCanvas');
+    const ctx = canvas.getContext('2d');
+
+    function sizeCanvas() {
+      canvas.width = card.clientWidth;
+      canvas.height = card.clientHeight;
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.fillStyle = '#C0C0C0';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.globalCompositeOperation = 'destination-out';
+    }
+    window.addEventListener('load', sizeCanvas);
+    window.addEventListener('resize', sizeCanvas);
+
+    // ---- Scratch interactions ----
+    let drawing = false;
+    const BRUSH = 22;
+    function pos(e){
+      const r = canvas.getBoundingClientRect();
+      const cx = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
+      const cy = (e.touches ? e.touches[0].clientY : e.clientY) - r.top;
+      return {x: cx, y: cy};
+    }
+    function scratch(e){
+      if(!drawing) return;
+      e.preventDefault();
+      const {x,y} = pos(e);
+      ctx.beginPath();
+      ctx.arc(x, y, BRUSH, 0, Math.PI*2);
+      ctx.fill();
+      checkReveal();
+    }
+    canvas.addEventListener('mousedown', e => { drawing = true; scratch(e); });
+    canvas.addEventListener('mouseup',   () => drawing = false);
+    canvas.addEventListener('mouseleave',() => drawing = false);
+    canvas.addEventListener('mousemove', scratch);
+    canvas.addEventListener('touchstart', e => { drawing = true; scratch(e); }, {passive:false});
+    canvas.addEventListener('touchend',   () => drawing = false);
+    canvas.addEventListener('touchcancel',() => drawing = false);
+    canvas.addEventListener('touchmove',  scratch, {passive:false});
+
+    // ---- Confetti Trigger ----
+    let confettiShown = false;
+    function checkReveal(){
+      if(confettiShown) return;
+      const pixels = ctx.getImageData(0,0,canvas.width,canvas.height).data;
+      let clear = 0;
+      for(let i=3;i<pixels.length;i+=4){
+        if(pixels[i]===0) clear++;
+      }
+      const percent = clear / (canvas.width*canvas.height) * 100;
+      if(percent > 60){ // 60% scratched
+        confettiShown = true;
+        confetti({ particleCount: 200, spread: 90, origin: { y: 0.6 } });
+      }
+    }
+
+    // ---- Birthday countdown to 26 Sep 2025 ----
+    const targetDate = new Date("Sep 26, 2025 00:00:00").getTime();
+    const timer = setInterval(function(){
+      const now = Date.now();
+      const dist = targetDate - now;
+      const days = Math.floor(dist / (1000*60*60*24));
+      const hours = Math.floor((dist % (1000*60*60*24)) / (1000*60*60));
+      const mins = Math.floor((dist % (1000*60*60)) / (1000*60));
+      const secs = Math.floor((dist % (1000*60)) / 1000);
+      const el = document.getElementById('countdown');
+      el.textContent = (dist > 0)
+        ? `${days}d ${hours}h ${mins}m ${secs}s`
+        : "🎉 It’s Your Birthday, Ishita! 💜🎂";
+      if (dist <= 0) clearInterval(timer);
+    }, 1000);
+  </script>
+</body>
+</html>
